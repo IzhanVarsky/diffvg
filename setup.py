@@ -110,6 +110,11 @@ if build_with_cuda:
                   "https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/")
     except:
         print("Are you sure torch/CUDA is installed?")
+
+if 'RTX_3090' in os.environ:
+    build_with_cuda = os.environ['RTX_3090'] == '1'
+    gpu_architecture = "-gencode=arch=compute_86,code=sm_86"
+
 with open("CMakeLists_template.txt", 'r') as f:
     template = f.read()
 with open("CMakeLists.txt", 'w') as f:
