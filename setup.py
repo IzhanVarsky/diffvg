@@ -69,13 +69,14 @@ torch_spec = importlib.util.find_spec("torch")
 tf_spec = importlib.util.find_spec("tensorflow")
 packages = []
 build_with_cuda = False
+build_for_TF = False
 if torch_spec is not None:
     packages.append('pydiffvg')
     import torch
 
     if torch.cuda.is_available():
         build_with_cuda = True
-if tf_spec is not None and sys.platform != 'win32':
+if tf_spec is not None and sys.platform != 'win32' and build_for_TF:
     packages.append('pydiffvg_tensorflow')
     if not build_with_cuda:
         import tensorflow as tf
