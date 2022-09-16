@@ -89,8 +89,9 @@ if len(packages) == 0:
 if 'DIFFVG_CUDA' in os.environ:
     build_with_cuda = os.environ['DIFFVG_CUDA'] == '1'
 
+TEMPLATE_ = "%%template%%"
+gpu_architecture = ""
 if build_with_cuda:
-    TEMPLATE_ = "%%template%%"
     # Only for torch:
     import torch
 
@@ -105,11 +106,10 @@ if build_with_cuda:
         print(f"GPU `{gpu_name}` is unknown => using GPU can cause errors, set manually architecture.")
         print("Find more info here: "
               "https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/")
-        gpu_architecture = ""
-    with open("CMakeLists_template.txt", 'r') as f:
-        template = f.read()
-    with open("CMakeLists.txt", 'w') as f:
-        f.write(template.replace(TEMPLATE_, gpu_architecture))
+with open("CMakeLists_template.txt", 'r') as f:
+    template = f.read()
+with open("CMakeLists.txt", 'w') as f:
+    f.write(template.replace(TEMPLATE_, gpu_architecture))
 
 setup(name='diffvg',
       version='0.0.1',
