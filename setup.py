@@ -119,3 +119,5 @@ setup(name='diffvg',
       cmdclass=dict(build_ext=Build, install=install),
       packages=packages,
       zip_safe=False)
+if sys.platform == "win32":
+    print(f"Add to the file `your_venv\lib\site-packages\diffvg-0.0.1-_some_versions_\diffvg` `.pyd` extension!")

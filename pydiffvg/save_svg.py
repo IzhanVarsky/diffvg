@@ -12,15 +12,15 @@ def prettify(elem):
     return reparsed.toprettyxml(indent="  ")
 
 
-def save_svg(filename, width, height, shapes, shape_groups, use_gamma=False):
+def svg_to_tree(width, height, shapes, shape_groups, use_gamma=False):
     root = etree.Element('svg')
     root.set('version', '1.1')
     root.set('xmlns', 'http://www.w3.org/2000/svg')
     root.set('width', str(width))
     root.set('height', str(height))
     defs = etree.SubElement(root, 'defs')
-    g = etree.SubElement(root, 'g')
     if use_gamma:
+        g = etree.SubElement(root, 'g')
         f = etree.SubElement(defs, 'filter')
         f.set('id', 'gamma')
         f.set('x', '0')
@@ -46,6 +46,8 @@ def save_svg(filename, width, height, shapes, shape_groups, use_gamma=False):
         feFuncA.set('amplitude', str(1))
         feFuncA.set('exponent', str(1 / 2.2))
         g.set('style', 'filter:url(#gamma)')
+    else:
+        g = root
 
     # Store color
     for i, shape_group in enumerate(shape_groups):
@@ -148,6 +150,14 @@ def save_svg(filename, width, height, shapes, shape_groups, use_gamma=False):
                 shape_node.set('stroke-opacity', str(c[3]))
             shape_node.set('stroke-linecap', 'round')
             shape_node.set('stroke-linejoin', 'round')
+    return root
 
+
+def svg_to_str(width, height, shapes, shape_groups, use_gamma=False):
+    root = svg_to_tree(width, height, shapes, shape_groups, use_gamma)
+    return prettify(root)
+
+
+def save_svg(filename, width, height, shapes, shape_groups, use_gamma=False):
     with open(filename, "w") as f:
-        f.write(prettify(root))
+        f.write(svg_to_str(width, height, shapes, shape_groups, use_gamma))
