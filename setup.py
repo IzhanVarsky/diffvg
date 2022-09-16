@@ -94,19 +94,22 @@ TEMPLATE_ = "%%template%%"
 gpu_architecture = ""
 if build_with_cuda:
     # Only for torch:
-    import torch
+    try:
+        import torch
 
-    gpu_name = torch.cuda.get_device_name()
-    if gpu_name == "Tesla T4":
-        gpu_architecture = "-gencode=arch=compute_75,code=sm_75"
-    elif gpu_name == "Tesla K80":
-        gpu_architecture = "-gencode=arch=compute_37,code=sm_37"
-    elif gpu_name == "GeForce RTX 3090":
-        gpu_architecture = "-gencode=arch=compute_86,code=sm_86"
-    else:
-        print(f"GPU `{gpu_name}` is unknown => using GPU can cause errors, set manually architecture.")
-        print("Find more info here: "
-              "https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/")
+        gpu_name = torch.cuda.get_device_name()
+        if gpu_name == "Tesla T4":
+            gpu_architecture = "-gencode=arch=compute_75,code=sm_75"
+        elif gpu_name == "Tesla K80":
+            gpu_architecture = "-gencode=arch=compute_37,code=sm_37"
+        elif gpu_name == "GeForce RTX 3090":
+            gpu_architecture = "-gencode=arch=compute_86,code=sm_86"
+        else:
+            print(f"GPU `{gpu_name}` is unknown => using GPU can cause errors, set manually architecture.")
+            print("Find more info here: "
+                  "https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/")
+    except:
+        print("Are you sure torch/CUDA is installed?")
 with open("CMakeLists_template.txt", 'r') as f:
     template = f.read()
 with open("CMakeLists.txt", 'w') as f:
