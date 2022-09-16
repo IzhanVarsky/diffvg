@@ -2,28 +2,31 @@ import torch
 import svgpathtools
 import math
 
+
 class Circle:
-    def __init__(self, radius, center, stroke_width = torch.tensor(1.0), id = ''):
+    def __init__(self, radius, center, stroke_width=torch.tensor(1.0), id=''):
         self.radius = radius
         self.center = center
         self.stroke_width = stroke_width
         self.id = id
 
+
 class Ellipse:
-    def __init__(self, radius, center, stroke_width = torch.tensor(1.0), id = ''):
+    def __init__(self, radius, center, stroke_width=torch.tensor(1.0), id=''):
         self.radius = radius
         self.center = center
         self.stroke_width = stroke_width
         self.id = id
+
 
 class Path:
     def __init__(self,
                  num_control_points,
                  points,
                  is_closed,
-                 stroke_width = torch.tensor(1.0),
-                 id = '',
-                 use_distance_approx = False):
+                 stroke_width=torch.tensor(1.0),
+                 id='',
+                 use_distance_approx=False):
         self.num_control_points = num_control_points
         self.points = points
         self.is_closed = is_closed
@@ -31,28 +34,31 @@ class Path:
         self.id = id
         self.use_distance_approx = use_distance_approx
 
+
 class Polygon:
-    def __init__(self, points, is_closed, stroke_width = torch.tensor(1.0), id = ''):
+    def __init__(self, points, is_closed, stroke_width=torch.tensor(1.0), id=''):
         self.points = points
         self.is_closed = is_closed
         self.stroke_width = stroke_width
         self.id = id
 
+
 class Rect:
-    def __init__(self, p_min, p_max, stroke_width = torch.tensor(1.0), id = ''):
+    def __init__(self, p_min, p_max, stroke_width=torch.tensor(1.0), id=''):
         self.p_min = p_min
         self.p_max = p_max
         self.stroke_width = stroke_width
         self.id = id
 
+
 class ShapeGroup:
     def __init__(self,
                  shape_ids,
                  fill_color,
-                 use_even_odd_rule = True,
-                 stroke_color = None,
-                 shape_to_canvas = torch.eye(3),
-                 id = ''):
+                 use_even_odd_rule=True,
+                 stroke_color=None,
+                 shape_to_canvas=torch.eye(3),
+                 id=''):
         self.shape_ids = shape_ids
         self.fill_color = fill_color
         self.use_even_odd_rule = use_even_odd_rule
@@ -60,7 +66,8 @@ class ShapeGroup:
         self.shape_to_canvas = shape_to_canvas
         self.id = id
 
-def from_svg_path(path_str, shape_to_canvas = torch.eye(3), force_close = False):
+
+def from_svg_path(path_str, shape_to_canvas=torch.eye(3), force_close=False):
     path = svgpathtools.parse_path(path_str)
     if len(path) == 0:
         return []
@@ -70,20 +77,20 @@ def from_svg_path(path_str, shape_to_canvas = torch.eye(3), force_close = False)
         if subpath.isclosed():
             if len(subpath) > 1 and isinstance(subpath[-1], svgpathtools.Line) and subpath[-1].length() < 1e-5:
                 subpath.remove(subpath[-1])
-                subpath[-1].end = subpath[0].start # Force closing the path
+                subpath[-1].end = subpath[0].start  # Force closing the path
                 subpath.end = subpath[-1].end
-                assert(subpath.isclosed())
+                assert (subpath.isclosed())
         else:
             beg = subpath[0].start
             end = subpath[-1].end
             if abs(end - beg) < 1e-5:
-                subpath[-1].end = beg # Force closing the path
+                subpath[-1].end = beg  # Force closing the path
                 subpath.end = subpath[-1].end
-                assert(subpath.isclosed())
+                assert (subpath.isclosed())
             elif force_close:
                 subpath.append(svgpathtools.Line(end, beg))
                 subpath.end = subpath[-1].end
-                assert(subpath.isclosed())
+                assert (subpath.isclosed())
 
         num_control_points = []
         points = []
@@ -93,8 +100,8 @@ def from_svg_path(path_str, shape_to_canvas = torch.eye(3), force_close = False)
                 points.append((e.start.real, e.start.imag))
             else:
                 # Must begin from the end of previous segment
-                assert(e.start.real == points[-1][0])
-                assert(e.start.imag == points[-1][1])
+                assert (e.start.real == points[-1][0])
+                assert (e.start.imag == points[-1][1])
             if isinstance(e, svgpathtools.Line):
                 num_control_points.append(0)
             elif isinstance(e, svgpathtools.QuadraticBezier):
@@ -160,12 +167,12 @@ def from_svg_path(path_str, shape_to_canvas = torch.eye(3), force_close = False)
             else:
                 if subpath.isclosed():
                     # Must end at the beginning of first segment
-                    assert(e.end.real == points[0][0])
-                    assert(e.end.imag == points[0][1])
+                    assert (e.end.real == points[0][0])
+                    assert (e.end.imag == points[0][1])
                 else:
                     points.append((e.end.real, e.end.imag))
-        points = torch.tensor(points)
-        points = torch.cat((points, torch.ones([points.shape[0], 1])), dim = 1) @ torch.transpose(shape_to_canvas, 0, 1)
+        points = torch.tensor(points, dtype=torch.float)  # Set float, because if it's float64 -> fail.
+        points = torch.cat((points, torch.ones([points.shape[0], 1])), dim=1) @ torch.transpose(shape_to_canvas, 0, 1)
         points = points / points[:, 2:3]
         points = points[:, :2].contiguous()
         ret_paths.append(Path(torch.tensor(num_control_points), points, subpath.isclosed()))

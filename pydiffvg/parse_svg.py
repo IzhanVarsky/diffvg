@@ -10,7 +10,7 @@ import re
 import warnings
 import cssutils
 import logging
-import matplotlib.colors 
+import matplotlib.colors
 cssutils.log.setLevel(logging.ERROR)
 
 def remove_namespaces(s):
@@ -26,10 +26,11 @@ def parse_style(s, defs):
         if len(key_value) == 2:
             key = key_value[0].strip()
             value = key_value[1].strip()
-            if key == 'fill' or key == 'stroke':
+            # THIS 'if' IS A BUG (crashes with `style="fill:url(#n)"`):
+            # if key == 'fill' or key == 'stroke':
                 # Special case: convert colors into tensor in definitions so
                 # that different shapes can share the same color
-                value = parse_color(value, defs)
+                # value = parse_color(value, defs)
             style_dict[key] = value
     return style_dict
 
@@ -71,10 +72,10 @@ def parse_color(s, defs):
     elif s == 'none':
         return None
     else:
-        try : 
+        try :
             rgba = matplotlib.colors.to_rgba(s)
             color = torch.tensor(rgba)
-        except ValueError : 
+        except ValueError :
             warnings.warn('Unknown color command ' + s)
     return color
 
@@ -137,6 +138,7 @@ def parse_transform(transform_str):
     return torch.from_numpy(total_transform).type(torch.float32)
 
 def parse_linear_gradient(node, transform, defs):
+    # NO use of gradientUnits attribute!
     begin = torch.tensor([0.0, 0.0])
     end = torch.tensor([0.0, 0.0])
     offsets = []
@@ -275,6 +277,8 @@ def parse_stylesheet(node, transform, defs):
 def parse_defs(node, transform, defs):
     for child in node:
         tag = remove_namespaces(child.tag)
+        # FAILS on `defs[child.attrib['id']]` when the tag with `id` attr goes after current node.
+        # (because defs[id] is None)
         if tag == 'linearGradient':
             if 'id' in child.attrib:
                 defs[child.attrib['id']] = parse_linear_gradient(child, transform, defs)

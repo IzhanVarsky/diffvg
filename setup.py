@@ -1,24 +1,22 @@
 # Adapted from https://github.com/pybind/cmake_example/blob/master/setup.py
+import importlib
 import os
-import re
-import sys
 import platform
 import subprocess
-import importlib
+import sys
 from sysconfig import get_paths
 
-import importlib
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
-from distutils.sysconfig import get_config_var
-from distutils.version import LooseVersion
+
 
 class CMakeExtension(Extension):
     def __init__(self, name, sourcedir, build_with_cuda):
         Extension.__init__(self, name, sources=[])
         self.sourcedir = os.path.abspath(sourcedir)
         self.build_with_cuda = build_with_cuda
+
 
 class Build(build_ext):
     def run(self):
@@ -44,7 +42,7 @@ class Build(build_ext):
             if platform.system() == "Windows":
                 cmake_args += ['-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir),
                                '-DCMAKE_RUNTIME_OUTPUT_DIRECTORY_{}={}'.format(cfg.upper(), extdir)]
-                if sys.maxsize > 2**32:
+                if sys.maxsize > 2 ** 32:
                     cmake_args += ['-A', 'x64']
                 build_args += ['--', '/m']
             else:
@@ -66,6 +64,7 @@ class Build(build_ext):
         else:
             super().build_extension(ext)
 
+
 torch_spec = importlib.util.find_spec("torch")
 tf_spec = importlib.util.find_spec("tensorflow")
 packages = []
@@ -73,12 +72,14 @@ build_with_cuda = False
 if torch_spec is not None:
     packages.append('pydiffvg')
     import torch
+
     if torch.cuda.is_available():
         build_with_cuda = True
 if tf_spec is not None and sys.platform != 'win32':
     packages.append('pydiffvg_tensorflow')
     if not build_with_cuda:
         import tensorflow as tf
+
         if tf.test.is_gpu_available(cuda_only=True, min_cuda_compute_capability=None):
             build_with_cuda = True
 if len(packages) == 0:
@@ -88,11 +89,33 @@ if len(packages) == 0:
 if 'DIFFVG_CUDA' in os.environ:
     build_with_cuda = os.environ['DIFFVG_CUDA'] == '1'
 
-setup(name = 'diffvg',
-      version = '0.0.1',
-      install_requires = ["svgpathtools"],
-      description = 'Differentiable Vector Graphics',
-      ext_modules = [CMakeExtension('diffvg', '', build_with_cuda)],
-      cmdclass = dict(build_ext=Build, install=install),
-      packages = packages,
-      zip_safe = False)
+if build_with_cuda:
+    TEMPLATE_ = "%%template%%"
+    # Only for torch:
+    import torch
+
+    gpu_name = torch.cuda.get_device_name()
+    if gpu_name == "Tesla T4":
+        gpu_architecture = "-gencode=arch=compute_75,code=sm_75"
+    elif gpu_name == "Tesla K80":
+        gpu_architecture = "-gencode=arch=compute_37,code=sm_37"
+    elif gpu_name == "GeForce RTX 3090":
+        gpu_architecture = "-gencode=arch=compute_86,code=sm_86"
+    else:
+        print(f"GPU `{gpu_name}` is unknown => using GPU can cause errors, set manually architecture.")
+        print("Find more info here: "
+              "https://arnon.dk/matching-sm-architectures-arch-and-gencode-for-various-nvidia-cards/")
+        gpu_architecture = ""
+    with open("CMakeLists_template.txt", 'r') as f:
+        template = f.read()
+    with open("CMakeLists.txt", 'w') as f:
+        f.write(template.replace(TEMPLATE_, gpu_architecture))
+
+setup(name='diffvg',
+      version='0.0.1',
+      install_requires=["svgpathtools"],
+      description='Differentiable Vector Graphics',
+      ext_modules=[CMakeExtension('diffvg', '', build_with_cuda)],
+      cmdclass=dict(build_ext=Build, install=install),
+      packages=packages,
+      zip_safe=False)
