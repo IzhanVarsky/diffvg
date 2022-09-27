@@ -60,13 +60,15 @@ def svg_to_tree(width, height, shapes, shape_groups, use_gamma=False):
                 color.set('y1', str(lg.begin[1].item()))
                 color.set('x2', str(lg.end[0].item()))
                 color.set('y2', str(lg.end[1].item()))
+                if lg.gradientUnits != "":
+                    color.set('gradientUnits', lg.gradientUnits)
                 offsets = lg.offsets.data.cpu().numpy()
                 stop_colors = lg.stop_colors.data.cpu().numpy()
                 for j in range(offsets.shape[0]):
                     stop = etree.SubElement(color, 'stop')
                     stop.set('offset', str(offsets[j]))
                     c = lg.stop_colors[j, :]
-                    stop.set('stop-color', 'rgb({}, {}, {})'.format( \
+                    stop.set('stop-color', 'rgb({}, {}, {})'.format(
                         int(255 * c[0]), int(255 * c[1]), int(255 * c[2])))
                     stop.set('stop-opacity', '{}'.format(c[3]))
             elif isinstance(shape_color, pydiffvg.RadialGradient):

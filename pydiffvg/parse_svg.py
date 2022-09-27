@@ -138,11 +138,11 @@ def parse_transform(transform_str):
     return torch.from_numpy(total_transform).type(torch.float32)
 
 def parse_linear_gradient(node, transform, defs):
-    # NO use of gradientUnits attribute!
     begin = torch.tensor([0.0, 0.0])
     end = torch.tensor([0.0, 0.0])
     offsets = []
     stop_colors = []
+    gradientUnits = ""
     # Inherit from parent
     for key in node.attrib:
         if remove_namespaces(key) == 'href':
@@ -165,6 +165,8 @@ def parse_linear_gradient(node, transform, defs):
             end[1] = float(node.attrib['y2'])
         elif attrib == 'gradientTransform':
             transform = transform @ parse_transform(node.attrib['gradientTransform'])
+        elif attrib == 'gradientUnits':
+            gradientUnits = node.attrib['gradientUnits']
 
     begin = transform @ torch.cat((begin, torch.ones([1])))
     begin = begin / begin[2]
@@ -197,7 +199,7 @@ def parse_linear_gradient(node, transform, defs):
     if isinstance(stop_colors, list):
         stop_colors = torch.tensor(stop_colors)
 
-    return pydiffvg.LinearGradient(begin, end, offsets, stop_colors)
+    return pydiffvg.LinearGradient(begin, end, offsets, stop_colors, gradientUnits)
 
 
 def parse_radial_gradient(node, transform, defs):
@@ -496,7 +498,7 @@ def parse_shape(node, transform, fill_color, shapes, shape_groups, defs):
         circle.stroke_width = stroke_width
         shape_ids = torch.tensor([len(shapes)])
         shapes.append(circle)
-        shape_groups.append(pydiffvg.ShapeGroup(\
+        shape_groups.append(pydiffvg.ShapeGroup(
             shape_ids = shape_ids,
             fill_color = new_fill_color,
             stroke_color = stroke_color,
@@ -517,7 +519,7 @@ def parse_shape(node, transform, fill_color, shapes, shape_groups, defs):
         rect.stroke_width = stroke_width
         shape_ids = torch.tensor([len(shapes)])
         shapes.append(rect)
-        shape_groups.append(pydiffvg.ShapeGroup(\
+        shape_groups.append(pydiffvg.ShapeGroup(
             shape_ids = shape_ids,
             fill_color = new_fill_color,
             stroke_color = stroke_color,
@@ -533,10 +535,10 @@ def parse_group(node, transform, fill_color, shapes, shape_groups, defs):
     for child in node:
         tag = remove_namespaces(child.tag)
         if is_shape(tag):
-            shapes, shape_groups = parse_shape(\
+            shapes, shape_groups = parse_shape(
                 child, transform, fill_color, shapes, shape_groups, defs)
         elif tag == 'g':
-            shapes, shape_groups = parse_group(\
+            shapes, shape_groups = parse_group(
                 child, transform, fill_color, shapes, shape_groups, defs)
     return shapes, shape_groups
 
@@ -574,10 +576,10 @@ def parse_scene(node):
             if 'id' in child.attrib:
                 defs[child.attrib['id']] = parse_radial_gradient(child, transform, defs)
         elif is_shape(tag):
-            shapes, shape_groups = parse_shape(\
+            shapes, shape_groups = parse_shape(
                 child, transform, fill_color, shapes, shape_groups, defs)
         elif tag == 'g':
-            shapes, shape_groups = parse_group(\
+            shapes, shape_groups = parse_group(
                 child, transform, fill_color, shapes, shape_groups, defs)
     return canvas_width, canvas_height, shapes, shape_groups
 
