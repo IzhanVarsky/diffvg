@@ -275,19 +275,28 @@ def parse_stylesheet(node, transform, defs):
     return defs
 
 def parse_defs(node, transform, defs):
+    # if the tags are in the wrong order relative to the id
+    # -> initializing should be delayed (~ typological sort)
+    bad_children = []
     for child in node:
         tag = remove_namespaces(child.tag)
-        # FAILS on `defs[child.attrib['id']]` when the tag with `id` attr goes after current node.
-        # (because defs[id] is None)
         if tag == 'linearGradient':
             if 'id' in child.attrib:
-                defs[child.attrib['id']] = parse_linear_gradient(child, transform, defs)
+                try:
+                    defs[child.attrib['id']] = parse_linear_gradient(child, transform, defs)
+                except:
+                    bad_children.append(child)
         elif tag == 'radialGradient':
             if 'id' in child.attrib:
-                defs[child.attrib['id']] = parse_radial_gradient(child, transform, defs)
+                try:
+                    defs[child.attrib['id']] = parse_radial_gradient(child, transform, defs)
+                except:
+                    bad_children.append(child)
         elif tag == 'style':
             defs = parse_stylesheet(child, transform, defs)
-    return defs
+    if len(bad_children) == 0:
+        return defs
+    return parse_defs(bad_children, transform, defs)
 
 def parse_common_attrib(node, transform, fill_color, defs):
     attribs = {}
