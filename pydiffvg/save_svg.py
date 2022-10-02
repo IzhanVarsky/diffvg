@@ -12,7 +12,7 @@ def prettify(elem):
     return reparsed.toprettyxml(indent="  ")
 
 
-def svg_to_tree(width, height, shapes, shape_groups, use_gamma=False):
+def svg_to_tree(width, height, shapes, shape_groups, use_gamma=False, cubic_only=False):
     root = etree.Element('svg')
     root.set('version', '1.1')
     root.set('xmlns', 'http://www.w3.org/2000/svg')
@@ -115,13 +115,40 @@ def svg_to_tree(width, height, shapes, shape_groups, use_gamma=False):
                 for j in range(0, num_segments):
                     if num_control_points[j] == 0:
                         p = point_id % num_points
-                        path_str += ' L {} {}'.format(points[p, 0], points[p, 1])
+                        if cubic_only:
+                            l0_0 = points[point_id - 1, 0]
+                            l0_1 = points[point_id - 1, 1]
+                            l1_0 = points[p, 0]
+                            l1_1 = points[p, 1]
+                            path_str += ' C {} {} {} {} {} {}'.format(
+                                l0_0 + 1 / 3 * (l1_0 - l0_0),
+                                l0_1 + 1 / 3 * (l1_1 - l0_1),
+                                l0_0 + 2 / 3 * (l1_0 - l0_0),
+                                l0_1 + 2 / 3 * (l1_1 - l0_1),
+                                l1_0, l1_1
+                            )
+                        else:
+                            path_str += ' L {} {}'.format(points[p, 0], points[p, 1])
                         point_id += 1
                     elif num_control_points[j] == 1:
                         p1 = (point_id + 1) % num_points
-                        path_str += ' Q {} {} {} {}'.format(
-                            points[point_id, 0], points[point_id, 1],
-                            points[p1, 0], points[p1, 1])
+                        if cubic_only:
+                            q0_0 = points[point_id - 1, 0]
+                            q0_1 = points[point_id - 1, 1]
+                            q1_0 = points[point_id, 0]
+                            q1_1 = points[point_id, 1]
+                            q2_0 = points[p1, 0]
+                            q2_1 = points[p1, 1]
+                            path_str += ' C {} {} {} {} {} {}'.format(
+                                q0_0 + 2 / 3 * (q1_0 - q0_0),
+                                q0_1 + 2 / 3 * (q1_1 - q0_1),
+                                q2_0 + 2 / 3 * (q1_0 - q2_0),
+                                q2_1 + 2 / 3 * (q1_1 - q2_1),
+                                q2_0, q2_1)
+                        else:
+                            path_str += ' Q {} {} {} {}'.format(
+                                points[point_id, 0], points[point_id, 1],
+                                points[p1, 0], points[p1, 1])
                         point_id += 2
                     elif num_control_points[j] == 2:
                         p2 = (point_id + 2) % num_points
@@ -170,11 +197,11 @@ def svg_to_tree(width, height, shapes, shape_groups, use_gamma=False):
     return root
 
 
-def svg_to_str(width, height, shapes, shape_groups, use_gamma=False):
-    root = svg_to_tree(width, height, shapes, shape_groups, use_gamma)
+def svg_to_str(width, height, shapes, shape_groups, use_gamma=False, cubic_only=False):
+    root = svg_to_tree(width, height, shapes, shape_groups, use_gamma, cubic_only)
     return prettify(root)
 
 
-def save_svg(filename, width, height, shapes, shape_groups, use_gamma=False):
+def save_svg(filename, width, height, shapes, shape_groups, use_gamma=False, cubic_only=False):
     with open(filename, "w") as f:
-        f.write(svg_to_str(width, height, shapes, shape_groups, use_gamma))
+        f.write(svg_to_str(width, height, shapes, shape_groups, use_gamma, cubic_only))
