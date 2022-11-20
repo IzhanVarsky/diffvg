@@ -12,12 +12,20 @@ def prettify(elem):
     return reparsed.toprettyxml(indent="  ")
 
 
-def svg_to_tree(width, height, shapes, shape_groups, use_gamma=False, cubic_only=False):
+def svg_to_tree(width, height, shapes, shape_groups, use_gamma=False,
+                cubic_only=False,
+                use_viewBox=True,
+                normalize=False):
     root = etree.Element('svg')
     root.set('version', '1.1')
     root.set('xmlns', 'http://www.w3.org/2000/svg')
+    max_side = max(width, height)
     root.set('width', str(width))
     root.set('height', str(height))
+    if normalize:
+        root.set('viewBox', f"0 0 {str(width / max_side)} {str(height / max_side)}")
+    elif use_viewBox:
+        root.set('viewBox', f"0 0 {str(width)} {str(height)}")
     defs = etree.SubElement(root, 'defs')
     if use_gamma:
         g = etree.SubElement(root, 'g')
@@ -90,6 +98,9 @@ def svg_to_tree(width, height, shapes, shape_groups, use_gamma=False, cubic_only
         # print("LEN OF SHAPE GROUP:", len(shape_group.shape_ids))
         for shape_num in range(len(shape_group.shape_ids)):
             shape = shapes[shape_group.shape_ids[shape_num]]
+            if normalize:
+                shape.points /= max_side
+            # print(shape.points)
             if isinstance(shape, pydiffvg.Circle):
                 shape_node = etree.SubElement(g, 'circle')
                 shape_node.set('r', str(shape.radius.item()))
@@ -197,11 +208,19 @@ def svg_to_tree(width, height, shapes, shape_groups, use_gamma=False, cubic_only
     return root
 
 
-def svg_to_str(width, height, shapes, shape_groups, use_gamma=False, cubic_only=False):
-    root = svg_to_tree(width, height, shapes, shape_groups, use_gamma, cubic_only)
+def svg_to_str(width, height, shapes, shape_groups, use_gamma=False,
+               cubic_only=False,
+               use_viewBox=True,
+               normalize=False):
+    root = svg_to_tree(width, height, shapes, shape_groups, use_gamma,
+                       cubic_only, use_viewBox, normalize)
     return prettify(root)
 
 
-def save_svg(filename, width, height, shapes, shape_groups, use_gamma=False, cubic_only=False):
+def save_svg(filename, width, height, shapes, shape_groups, use_gamma=False,
+             cubic_only=False,
+             use_viewBox=True,
+             normalize=False):
     with open(filename, "w") as f:
-        f.write(svg_to_str(width, height, shapes, shape_groups, use_gamma, cubic_only))
+        f.write(svg_to_str(width, height, shapes, shape_groups, use_gamma,
+                           cubic_only, use_viewBox, normalize))

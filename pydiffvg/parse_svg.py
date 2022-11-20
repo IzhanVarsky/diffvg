@@ -596,3 +596,8 @@ def svg_to_scene(filename):
     ret = parse_scene(root)
     os.chdir(cwd)
     return ret
+
+def svg_str_to_scene(svg_str):
+    root = etree.fromstring(svg_str)
+    ret = parse_scene(root)
+    return ret
