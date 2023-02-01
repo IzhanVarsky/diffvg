@@ -15,17 +15,29 @@ def prettify(elem):
 def svg_to_tree(width, height, shapes, shape_groups, use_gamma=False,
                 cubic_only=False,
                 use_viewBox=True,
-                normalize=False):
+                normalize_points=False,
+                viewBox_width=None,
+                viewBox_height=None,
+                ):
+    # * Set cubic_only=True to save paths using only C commands instead of L and Q.
+    # * Set use_viewBox=True to save svg with 'viewBox' attribute.
+    # * Set normalize_points=True to scale points to [0, 1] range.
+    #   The 'viewBox' attribute will be used automatically.
+    # * Set viewBox_width and viewBox_height to set manually the 'viewBox' dimensions.
+    #   This can be useful if the 'viewBox' should have values other than 'width' and 'height' attributes.
     root = etree.Element('svg')
     root.set('version', '1.1')
     root.set('xmlns', 'http://www.w3.org/2000/svg')
-    max_side = max(width, height)
     root.set('width', str(width))
     root.set('height', str(height))
-    if normalize:
-        root.set('viewBox', f"0 0 {str(width / max_side)} {str(height / max_side)}")
+    if normalize_points:
+        new_w, new_h = pydiffvg.normalize_points(shapes, shape_groups, width, height)
+        root.set('viewBox', f"0 0 {str(new_w)} {str(new_h)}")
     elif use_viewBox:
-        root.set('viewBox', f"0 0 {str(width)} {str(height)}")
+        viewBox_value = f"0 0 {str(viewBox_width)} {str(viewBox_height)}" \
+            if viewBox_width is not None and viewBox_height is not None \
+            else f"0 0 {str(width)} {str(height)}"
+        root.set('viewBox', viewBox_value)
     defs = etree.SubElement(root, 'defs')
     if use_gamma:
         g = etree.SubElement(root, 'g')
@@ -98,9 +110,6 @@ def svg_to_tree(width, height, shapes, shape_groups, use_gamma=False,
         # print("LEN OF SHAPE GROUP:", len(shape_group.shape_ids))
         for shape_num in range(len(shape_group.shape_ids)):
             shape = shapes[shape_group.shape_ids[shape_num]]
-            if normalize:
-                shape.points /= max_side
-            # print(shape.points)
             if isinstance(shape, pydiffvg.Circle):
                 shape_node = etree.SubElement(g, 'circle')
                 shape_node.set('r', str(shape.radius.item()))
@@ -211,16 +220,16 @@ def svg_to_tree(width, height, shapes, shape_groups, use_gamma=False,
 def svg_to_str(width, height, shapes, shape_groups, use_gamma=False,
                cubic_only=False,
                use_viewBox=True,
-               normalize=False):
+               normalize_points=False):
     root = svg_to_tree(width, height, shapes, shape_groups, use_gamma,
-                       cubic_only, use_viewBox, normalize)
+                       cubic_only, use_viewBox, normalize_points)
     return prettify(root)
 
 
 def save_svg(filename, width, height, shapes, shape_groups, use_gamma=False,
              cubic_only=False,
              use_viewBox=True,
-             normalize=False):
+             normalize_points=False):
     with open(filename, "w") as f:
         f.write(svg_to_str(width, height, shapes, shape_groups, use_gamma,
-                           cubic_only, use_viewBox, normalize))
+                           cubic_only, use_viewBox, normalize_points))
