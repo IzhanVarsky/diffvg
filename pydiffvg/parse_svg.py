@@ -485,6 +485,7 @@ def parse_shape(node, transform, fill_color, shapes, shape_groups, defs):
             use_even_odd_rule = use_even_odd_rule,
             shape_to_canvas = new_transform))
     elif tag == 'ellipse':
+        print('WARNING!!! DiffVG apparently handles ellipses incorrectly!!!')
         rx = float(node.attrib['rx'])
         ry = float(node.attrib['ry'])
         cx = float(node.attrib['cx'])
@@ -507,9 +508,9 @@ def parse_shape(node, transform, fill_color, shapes, shape_groups, defs):
     elif tag == 'rect':
         x = 0.0
         y = 0.0
-        if x in node.attrib:
+        if 'x' in node.attrib:
             x = float(node.attrib['x'])
-        if y in node.attrib:
+        if 'y' in node.attrib:
             y = float(node.attrib['y'])
         w = float(node.attrib['width'])
         h = float(node.attrib['height'])
