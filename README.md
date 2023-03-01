@@ -56,7 +56,7 @@ Fixed in this repo:
 
 On Windows before all operations:
 
-* Install Visual Build Tools. I tested only 2019
+* Install Visual Build Tools. Choose `C++ classic apps` while installing. I tested only 2019
   version. [Link to the latest release](https://aka.ms/vs/17/release/vs_BuildTools.exe).
 * Installing full Visual Studio instead of Build Tools also should help (but it is not accurate).
 
