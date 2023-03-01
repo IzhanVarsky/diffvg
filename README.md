@@ -1,4 +1,77 @@
+# What this fork is about??
+
+Here I fixed some bugs of the amazing DiffVG work.
+
+### Known bugs
+
+NOT fixed in this repo:
+
+* BAD support of RadialGradient.
+* BAD support of Ellipse. Now it has only one radius, but it should have two.
+
+Fixed in this repo:
+
+* Problems with installing for TensorFlow:
+    * Solution: DISABLED TF support.
+* Problems with running on GPU.
+    * [Solution](https://github.com/BachiLi/diffvg/issues/29#issuecomment-994807865)
+* Problem with `import diffvg` on Windows.
+    * Solution: rename the `your_venv\lib\site-packages\diffvg-0.0.1-_some_versions_\diffvg` file to `diffvg.pyd`.
+    * DO IT MANUALLY!
+* Crashing with `style="fill:url(#n)"`
+  in [pydiffvg/parse_svg.py](./pydiffvg/parse_svg.py).
+    * Solution: remove bugged `if` clause.
+* Crashing when parsing svg with wrong order of tags with `id` attribute.
+    * (*) Solution: topsort visual tags. Current solution is not a full topsort, it sorts only in `<defs>`!
+* No saving info about `gradientUnits` attribute in linear gradients.
+    * (*) Solution: added such field to `LinearGradient` class. IT IS NOT PASSED to Renderer, so it cannot be used while
+      optimizations.
+* Saving only the first path when it consists of multiple subpaths.
+    * Solution: add `for` loop for adding all the subpaths.
+* Crashing when using `float64` points.
+    * Solution: add cast to `torch.float`.
+* Bad reading of X,Y coordinates of `<rect>`.
+    * Fixed.
+
+### Modifications
+
+* When saving, an extra group tag is added.
+    * Solution: removed extra group.
+* Forcing compile for GPU for `RTX 3090`.
+    * Solution: when running `setup.py install` pass `RTX_3090=1` flag.
+* Increased `max_hit_shapes` param for huge SVGs.
+
+### Added functions
+
+* `svg_to_str()` in [pydiffvg/save_svg.py](./pydiffvg/save_svg.py)
+    * Return SVG as string
+    * Can convert lines in `<path>` only as cubic curves.
+* Using `viewbox` param when saving. See [pydiffvg/save_svg.py](./pydiffvg/save_svg.py).
+* Normalizing coordinates to `[0, 1]` interval and rescaling it. See [pydiffvg/utils.py](./pydiffvg/utils.py)
+* `svg_str_to_scene()` in [pydiffvg/parse_svg.py](./pydiffvg/parse_svg.py).
+    * Read SVG from string
+
+### How to install?
+
+On Windows before all operations:
+
+* Install Visual Build Tools. I tested only 2019
+  version. [Link to the latest release](https://aka.ms/vs/17/release/vs_BuildTools.exe).
+* Installing full Visual Studio instead of Build Tools also should help (but it is not accurate).
+
+Common for Windows and Linux:
+
+* `pip install torch svgwrite svgpathtools cssutils numba torch-tools cmake`
+* `git clone https://github.com/IzhanVarsky/diffvg2022 --recursive`
+* `cd ./diffvg2022`
+* `python3 ./setup.py install`
+
+On Windows after all operations:
+
+* Rename the `your_venv\lib\site-packages\diffvg-0.0.1-_some_versions_\diffvg` file to `diffvg.pyd`.
+
 # diffvg
+
 Differentiable Rasterizer for Vector Graphics
 https://people.csail.mit.edu/tzumao/diffvg
 
@@ -17,6 +90,7 @@ diffvg is a differentiable rasterizer for 2D vector graphics. See the webpage fo
 ![ellipse_transform](https://user-images.githubusercontent.com/951021/67149013-06b54700-f25b-11e9-91eb-a61171c6d4a4.gif)
 
 # Install
+
 ```
 git submodule update --init --recursive
 conda install -y pytorch torchvision -c pytorch
@@ -32,9 +106,11 @@ pip install torch-tools
 pip install visdom
 python setup.py install
 ```
+
 # Install using poetry
 
 ## prerequisite
+
 install python 3.7, poetry and ffmpeg
 
 ```
@@ -76,65 +152,81 @@ python setup.py build --debug install
 ```
 
 # Run
+
 ```
 cd apps
 ```
 
 Optimizing a single circle to a target.
+
 ```
 python single_circle.py
 ```
 
 Finite difference comparison.
+
 ```
 finite_difference_comp.py [-h] [--size_scale SIZE_SCALE]
                                [--clamping_factor CLAMPING_FACTOR]
                                [--use_prefiltering USE_PREFILTERING]
                                svg_file
 ```
+
 e.g.,
+
 ```
 python finite_difference_comp.py imgs/tiger.svg
 ```
 
 Interactive editor
+
 ```
 python svg_brush.py
 ```
 
 Painterly rendering
+
 ```
 painterly_rendering.py [-h] [--num_paths NUM_PATHS]
                        [--max_width MAX_WIDTH] [--use_lpips_loss]
                        [--num_iter NUM_ITER] [--use_blob]
                        target
 ```
+
 e.g.,
+
 ```
 python painterly_rendering.py imgs/fallingwater.jpg --num_paths 2048 --max_width 4.0 --use_lpips_loss
 ```
 
 Image vectorization
+
 ```
 python refine_svg.py [-h] [--use_lpips_loss] [--num_iter NUM_ITER] svg target
 ```
+
 e.g.,
+
 ```
 python refine_svg.py imgs/flower.svg imgs/flower.jpg
 ```
 
 Seam carving
+
 ```
 python seam_carving.py [-h] [--svg SVG] [--optim_steps OPTIM_STEPS]
 ```
+
 e.g.,
+
 ```
 python seam_carving.py imgs/hokusai.svg
 ```
 
 Vector variational autoencoder & vector GAN:
 
-For the GAN models, see `apps/generative_models/train_gan.py`. Generate samples from a pretrained using `apps/generative_models/eval_gan.py`.
+For the GAN models, see `apps/generative_models/train_gan.py`. Generate samples from a pretrained
+using `apps/generative_models/eval_gan.py`.
 
 For the VAE models, see `apps/generative_models/mnist_vae.py`.
 

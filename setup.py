@@ -129,4 +129,6 @@ setup(name='diffvg',
       packages=packages,
       zip_safe=False)
 if sys.platform == "win32":
-    print(f"Add to the file `your_venv\lib\site-packages\diffvg-0.0.1-_some_versions_\diffvg` `.pyd` extension!")
+    print("*" * 50)
+    print("ATTENTION!!!")
+    print(f"Rename the `your_venv\lib\site-packages\diffvg-0.0.1-_some_versions_\diffvg` file to `diffvg.pyd`!")
