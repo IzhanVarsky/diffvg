@@ -20,16 +20,16 @@ Fixed in this repo:
     * DO IT MANUALLY!
 * Crashing with `style="fill:url(#n)"`
   in [pydiffvg/parse_svg.py](./pydiffvg/parse_svg.py).
-    * Solution: remove bugged `if` clause.
+    * Solution: removed bugged `if` clause.
 * Crashing when parsing svg with wrong order of tags with `id` attribute.
     * (*) Solution: topsort visual tags. Current solution is not a full topsort, it sorts only in `<defs>`!
 * No saving info about `gradientUnits` attribute in linear gradients.
     * (*) Solution: added such field to `LinearGradient` class. IT IS NOT PASSED to Renderer, so it cannot be used while
       optimizations.
 * Saving only the first path when it consists of multiple subpaths.
-    * Solution: add `for` loop for adding all the subpaths.
+    * Solution: added `for` loop for adding all the subpaths.
 * Crashing when using `float64` points.
-    * Solution: add cast to `torch.float`.
+    * Solution: added cast to `torch.float`.
 * Bad reading of X,Y coordinates of `<rect>`.
     * Fixed.
 
@@ -39,17 +39,18 @@ Fixed in this repo:
     * Solution: removed extra group.
 * Forcing compile for GPU for `RTX 3090`.
     * Solution: when running `setup.py install` pass `RTX_3090=1` flag.
+    * It is helpful when compiling in Docker.
 * Increased `max_hit_shapes` param for huge SVGs.
 
 ### Added functions
 
 * `svg_to_str()` in [pydiffvg/save_svg.py](./pydiffvg/save_svg.py)
-    * Return SVG as string
+    * Returns SVG as string
     * Can convert lines in `<path>` only as cubic curves.
 * Using `viewbox` param when saving. See [pydiffvg/save_svg.py](./pydiffvg/save_svg.py).
-* Normalizing coordinates to `[0, 1]` interval and rescaling it. See [pydiffvg/utils.py](./pydiffvg/utils.py)
+* Normalizing coordinates to `[0, 1]` interval and rescaling it. See [pydiffvg/utils.py](./pydiffvg/utils.py).
 * `svg_str_to_scene()` in [pydiffvg/parse_svg.py](./pydiffvg/parse_svg.py).
-    * Read SVG from string
+    * Reads SVG from string
 
 ### How to install?
 
