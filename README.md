@@ -62,7 +62,7 @@ On Windows before all operations:
 
 Common for Windows and Linux:
 
-* `pip install torch svgwrite svgpathtools cssutils numba torch-tools cmake`
+* `pip install torch svgwrite svgpathtools cssutils numba torch-tools cmake visdom scikit-learn scikit-image matplotlib`
 * `git clone https://github.com/IzhanVarsky/diffvg2022 --recursive`
 * `cd ./diffvg2022`
 * `python3 ./setup.py install`
