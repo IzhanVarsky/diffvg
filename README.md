@@ -7,7 +7,7 @@ Here I fixed some bugs of the amazing DiffVG work.
 NOT fixed in this repo:
 
 * BAD support of RadialGradient.
-* BAD support of Ellipse. Now it has only one radius, but it should have two.
+* BAD support of Ellipse. Currently, it has only one radius, but it should have two.
 
 Fixed in this repo:
 
@@ -63,8 +63,8 @@ On Windows before all operations:
 Common for Windows and Linux:
 
 * `pip install torch svgwrite svgpathtools cssutils numba torch-tools cmake visdom scikit-learn scikit-image matplotlib`
-* `git clone https://github.com/IzhanVarsky/diffvg2022 --recursive`
-* `cd ./diffvg2022`
+* `git clone https://github.com/IzhanVarsky/diffvg --recursive`
+* `cd ./diffvg`
 * `python3 ./setup.py install`
 
 On Windows after all operations:
