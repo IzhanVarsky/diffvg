@@ -57,8 +57,8 @@ Fixed in this repo:
 On Windows before all operations:
 
 * Install Visual Build Tools. Choose `C++ classic apps` while installing. I tested only 2019
-  version. [Link to the latest release](https://aka.ms/vs/17/release/vs_BuildTools.exe).
-* Installing full Visual Studio instead of Build Tools also should help (but it is not accurate).
+  version. [Link to the latest release (2022 version)](https://aka.ms/vs/17/release/vs_BuildTools.exe).
+* Installing full Visual Studio instead of Build Tools also should help (but I am not sure).
 
 Common for Windows and Linux:
 
@@ -70,6 +70,13 @@ Common for Windows and Linux:
 On Windows after all operations:
 
 * Rename the `your_venv\lib\site-packages\diffvg-0.0.1-_some_versions_\diffvg` file to `diffvg.pyd`.
+
+#### Troubleshooting
+
+My current working version of python on windows is python3.10.7.
+
+* Error: `LINK : fatal error LNK1104: cannot open file "python310.lib"`. Check that cmake finds the correct PythonLibs.
+  It seems to be that cmake always finds the latest python version on computer.
 
 # diffvg
 
