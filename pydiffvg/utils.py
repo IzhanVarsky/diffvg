@@ -22,14 +22,14 @@ def rescale_points(shapes, shape_groups, scale,
             shape_group.fill_color.begin *= scale
             shape_group.fill_color.end *= scale
         if isinstance(shape_group.fill_color, pydiffvg.RadialGradient):
-            shape_group.radius *= scale
-            shape_group.center *= scale
+            shape_group.fill_color.radius *= scale
+            shape_group.fill_color.center *= scale
         if isinstance(shape_group.stroke_color, pydiffvg.LinearGradient):
-            shape_group.fill_color.begin *= scale
-            shape_group.fill_color.end *= scale
+            shape_group.stroke_color.begin *= scale
+            shape_group.stroke_color.end *= scale
         if isinstance(shape_group.stroke_color, pydiffvg.RadialGradient):
-            shape_group.radius *= scale
-            shape_group.center *= scale
+            shape_group.stroke_color.radius *= scale
+            shape_group.stroke_color.center *= scale
     if old_width is not None and old_height is not None:
         return old_width * scale, old_height * scale
 
