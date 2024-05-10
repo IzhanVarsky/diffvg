@@ -15,6 +15,7 @@ add_subdirectory(pybind11)
 option(DIFFVG_CUDA "Build diffvg with GPU code path?" ON)
 
 if(DIFFVG_CUDA)
+    enable_language(CUDA)
     message(STATUS "Build with CUDA support")
     find_package(CUDAToolkit REQUIRED)
     set(CMAKE_CUDA_STANDARD 11)
