@@ -105,7 +105,7 @@ if build_with_cuda:
         elif gpu_name == "GeForce RTX 3090":
             gpu_architecture = "-gencode=arch=compute_86,code=sm_86"
         elif gpu_name == "GeForce RTX 4090":
-            gpu_architecture = "-gencode=arch=compute_89,code=sm_89"
+            gpu_architecture = "-arch=sm_89 -gencode=arch=compute_89,code=sm_89 -gencode=arch=compute_89,code=compute_89"
         else:
             print(f"GPU `{gpu_name}` is unknown => using GPU can cause errors, set manually architecture.")
             print("Find more info here: "
@@ -118,7 +118,7 @@ if 'RTX_3090' in os.environ:
     gpu_architecture = "-gencode=arch=compute_86,code=sm_86"
 elif 'RTX_4090' in os.environ:
     build_with_cuda = os.environ['RTX_4090'] == '1'
-    gpu_architecture = "-gencode=arch=compute_89,code=sm_89"
+    gpu_architecture = "-arch=sm_89 -gencode=arch=compute_89,code=sm_89 -gencode=arch=compute_89,code=compute_89"
 
 with open("CMakeLists_template.txt", 'r') as f:
     template = f.read()
