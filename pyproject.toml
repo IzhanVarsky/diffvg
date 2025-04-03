@@ -5,7 +5,7 @@ description = ""
 authors = ["Marco Lee <marco@goodnotesapp.com>"]
 
 [tool.poetry.dependencies]
-python = "=3.8"
+python = ">=3.8,<3.11"
 pygame = "^2.0.1"
 
 [tool.poetry.dev-dependencies]
